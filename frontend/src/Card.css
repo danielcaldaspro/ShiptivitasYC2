@@ -1,0 +1,53 @@
+.Card {
+  background-color: white;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  cursor: grab;
+  transition: transform 0.2s, box-shadow 0.2s;
+  border-left: 5px solid #adb5bd; /* Default grey */
+}
+
+.Card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.Card-grey { border-left-color: #adb5bd; }
+.Card-blue { border-left-color: #007bff; }
+.Card-green { border-left-color: #28a745; }
+
+.Card-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.Card-priority {
+  display: flex;
+  gap: 4px;
+}
+
+.Star {
+  cursor: pointer;
+  font-size: 1.2rem;
+  color: #dee2e6; /* Estrela apagada */
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.Star:hover {
+  transform: scale(1.2);
+  color: #ff9e00;
+}
+
+.Star.active {
+  color: #ff6600; /* Laranja YC para estrelas ativas */
+}
+
+/* Mandatory Column Class */
+.Swimlane-column {
+  /* This is already handled in Swimlane.css but added for criteria safety */
+}

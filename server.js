@@ -1,8 +1,10 @@
 import express from 'express';
+import cors from 'cors';
 import Database from 'better-sqlite3';
 
 const app = express();
 
+app.use(cors());
 app.use(express.json());
 
 app.get('/', (req, res) => {
@@ -122,14 +124,44 @@ app.put('/api/v1/clients/:id', (req, res) => {
   }
 
   let { status, priority } = req.body;
-  let clients = db.prepare('select * from clients').all();
-  const client = clients.find(client => client.id === id);
+  const client = db.prepare('select * from clients where id = ?').get(id);
+  const oldStatus = client.status;
+  const oldPriority = client.priority;
 
-  /* ---------- Update code below ----------*/
+  // Transaction ensures atomic updates for all affected clients
+  const updateTransaction = db.transaction(() => {
+    if (status && status !== oldStatus) {
+      // Moving to a different lane
+      // 1. Shift priorities in old lane to close the gap
+      db.prepare('update clients set priority = priority - 1 where status = ? and priority > ?').run(oldStatus, oldPriority);
+      
+      // 2. Shift priorities in new lane to make space for the incoming client
+      if (priority === undefined) {
+        // If no priority specified, put it at the end of the new lane
+        const last = db.prepare('select max(priority) as maxP from clients where status = ?').get(status);
+        priority = (last.maxP || 0) + 1;
+      } else {
+        db.prepare('update clients set priority = priority + 1 where status = ? and priority >= ?').run(status, priority);
+      }
+      
+      db.prepare('update clients set status = ?, priority = ? where id = ?').run(status, priority, id);
+    } else if (priority !== undefined && priority !== oldPriority) {
+      // Reordering in the same lane
+      if (priority < oldPriority) {
+        // Moving UP: Shift items in between DOWN
+        db.prepare('update clients set priority = priority + 1 where status = ? and priority >= ? and priority < ?').run(oldStatus, priority, oldPriority);
+      } else {
+        // Moving DOWN: Shift items in between UP
+        db.prepare('update clients set priority = priority - 1 where status = ? and priority > ? and priority <= ?').run(oldStatus, oldPriority, priority);
+      }
+      db.prepare('update clients set priority = ? where id = ?').run(priority, id);
+    }
+  });
 
+  updateTransaction();
 
-
-  return res.status(200).send(clients);
+  const allClients = db.prepare('select * from clients').all();
+  return res.status(200).send(allClients);
 });
 
 app.listen(3001);

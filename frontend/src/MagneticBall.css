@@ -1,0 +1,67 @@
+.Magnetic-Ball-System.global {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 9999;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: none;
+  will-change: transform;
+}
+
+.Magnetic-Core {
+  width: 35px;
+  height: 35px;
+  background: #ff6600; /* YC Orange */
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-weight: 900;
+  font-size: 14px;
+  z-index: 10;
+  box-shadow: 0 5px 15px rgba(255, 102, 0, 0.4);
+  border: 2px solid white;
+}
+
+.Magnetic-Field {
+  position: absolute;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 102, 0, 0.3);
+  background: rgba(255, 102, 0, 0.03);
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+
+.layer-1 {
+  width: 60px;
+  height: 60px;
+  opacity: 0.8;
+  animation: pulse-field 3s infinite;
+}
+
+.layer-2 {
+  width: 100px;
+  height: 100px;
+  opacity: 0.4;
+  animation: pulse-field 3s infinite 0.5s;
+}
+
+.layer-3 {
+  width: 150px;
+  height: 150px;
+  opacity: 0.15;
+  border-style: dashed;
+  animation: pulse-field 3s infinite 1s;
+}
+
+@keyframes pulse-field {
+  0% { transform: scale(1); opacity: inherit; }
+  50% { transform: scale(1.05); opacity: 0.1; }
+  100% { transform: scale(1); opacity: inherit; }
+}
