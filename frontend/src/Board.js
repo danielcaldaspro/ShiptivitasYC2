@@ -14,33 +14,6 @@ export default class Board extends React.Component {
     }
   }
 
-  handleSort = (lane, mode) => {
-    const updatedClients = { ...this.props.clients };
-    updatedClients[lane] = this.sortClients(updatedClients[lane], mode);
-    this.props.onStateChange(updatedClients);
-  }
-
-  sortClients = (clients, mode) => {
-    const sorted = [...clients];
-    switch (mode) {
-      case 'AZ':
-        return sorted.sort((a, b) => a.name.localeCompare(b.name));
-      case 'ZA':
-        return sorted.sort((a, b) => b.name.localeCompare(a.name));
-      case 'High':
-        return sorted.sort((a, b) => b.priority - a.priority || a.name.localeCompare(b.name));
-      case 'Low':
-        return sorted.sort((a, b) => a.priority - b.priority || a.name.localeCompare(b.name));
-      default:
-        return sorted;
-    }
-  }
-
-  updatePriority = (clientID, newPriority) => {
-    // Persistent update via API
-    this.props.onClientUpdate(clientID, null, newPriority);
-  }
-
   componentDidMount() {
     this.drake = Dragula([
       this.swimlanes.backlog.current,
@@ -58,17 +31,15 @@ export default class Board extends React.Component {
       if (targetLaneTitle.includes('in progress')) { newStatus = 'in-progress'; }
       else if (targetLaneTitle.includes('complete')) { newStatus = 'complete'; }
 
-      // Calculate new priority based on position in the DOM (sibling)
-      const targetNodes = Array.from(target.childNodes);
+      // Calculate new priority (1-indexed) based on its dropped position
+      const targetNodes = Array.from(target.childNodes).filter(node => node.classList && node.classList.contains('Card'));
       let newPriority = targetNodes.length + 1;
       
       if (sibling) {
-        // Find index of sibling to determine the new priority (1-indexed)
-        const siblingIndex = targetNodes.indexOf(sibling);
-        newPriority = siblingIndex + 1;
+        newPriority = targetNodes.indexOf(sibling) + 1;
       }
 
-      // Notify App to update the backend
+      // Send to persistence layer
       this.props.onClientUpdate(clientID, newStatus, newPriority);
     });
   }
@@ -83,8 +54,6 @@ export default class Board extends React.Component {
         name={name} 
         clients={clients} 
         dragulaRef={ref}
-        onPriorityChange={this.updatePriority}
-        onSort={(mode) => this.handleSort(laneKey, mode)}
       />
     );
   }
